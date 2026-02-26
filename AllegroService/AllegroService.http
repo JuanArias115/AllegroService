@@ -1,0 +1,6 @@
+@AllegroService_HostAddress = http://localhost:5033
+
+GET {{AllegroService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
