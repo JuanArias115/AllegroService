@@ -22,7 +22,7 @@ services:
       dockerfile: ./dockerfile
     environment:
       ASPNETCORE_URLS: http://0.0.0.0:8080
-      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     ports:
       - "${API_PORT}:8080"
     depends_on:
