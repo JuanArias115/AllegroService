@@ -6,7 +6,9 @@ public static class ClaimsPrincipalExtensions
 {
     public static string? TryGetFirebaseUid(this ClaimsPrincipal principal)
     {
-        var value = principal.FindFirstValue(FirebaseClaimTypes.Subject);
+        var value = principal.FindFirstValue(FirebaseClaimTypes.Subject)
+            ?? principal.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? principal.FindFirstValue("user_id");
         return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 

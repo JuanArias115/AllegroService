@@ -19,6 +19,20 @@ public class UserTenantService : IUserTenantService
         _currentUser = currentUser;
     }
 
+    public async Task<ServiceResult<UserTenantDto>> GetCurrentAsync(CancellationToken cancellationToken)
+    {
+        var firebaseUid = _currentUser.GetRequiredFirebaseUid();
+
+        var entity = await _dbContext.UserTenants.AsNoTracking()
+            .Where(x => x.FirebaseUid == firebaseUid)
+            .Select(MapDtoExpression())
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return entity is null
+            ? ServiceResult<UserTenantDto>.Failure(StatusCodes.Status404NotFound, new ServiceError("not_found", "UserTenant not found."))
+            : ServiceResult<UserTenantDto>.Success(entity);
+    }
+
     public async Task<ServiceResult<PagedResponse<UserTenantDto>>> GetPagedAsync(ListQueryRequest request, CancellationToken cancellationToken)
     {
         var glampingId = _currentUser.GetRequiredGlampingId();

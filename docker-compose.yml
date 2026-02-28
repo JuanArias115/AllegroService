@@ -23,6 +23,7 @@ services:
     environment:
       ASPNETCORE_URLS: http://0.0.0.0:8080
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Firebase__ProjectId: ${FIREBASE_PROJECT_ID}
     ports:
       - "${API_PORT}:8080"
     depends_on:

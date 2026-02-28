@@ -12,16 +12,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
-var firebaseProjectId = builder.Configuration[$"{FirebaseOptions.SectionName}:ProjectId"];
+var firebaseProjectId = builder.Configuration[$"{FirebaseOptions.SectionName}:ProjectId"]
+    ?? builder.Configuration["Firebase__ProjectId"];
 if (string.IsNullOrWhiteSpace(firebaseProjectId))
 {
-    throw new InvalidOperationException("Firebase ProjectId configuration is required.");
+    throw new InvalidOperationException("Firebase ProjectId configuration is required. Configure Firebase:ProjectId or env var Firebase__ProjectId.");
 }
 
 var firebaseIssuer = $"https://securetoken.google.com/{firebaseProjectId}";
@@ -57,6 +59,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.Authority = firebaseIssuer;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -66,6 +69,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = firebaseProjectId,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("JwtBearer");
+
+                logger.LogWarning(context.Exception, "JWT authentication failed. Path: {Path}", context.HttpContext.Request.Path);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("JwtBearer");
+
+                var sub = context.Principal?.FindFirstValue(FirebaseClaimTypes.Subject)
+                    ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                logger.LogInformation("JWT token validated successfully. sub: {Sub}", string.IsNullOrWhiteSpace(sub) ? "<missing>" : sub);
+                return Task.CompletedTask;
+            }
         };
     });
 

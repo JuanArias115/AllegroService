@@ -6,6 +6,7 @@ namespace AllegroService.Application.Interfaces;
 
 public interface IUserTenantService
 {
+    Task<ServiceResult<UserTenantDto>> GetCurrentAsync(CancellationToken cancellationToken);
     Task<ServiceResult<PagedResponse<UserTenantDto>>> GetPagedAsync(ListQueryRequest request, CancellationToken cancellationToken);
     Task<ServiceResult<UserTenantDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<ServiceResult<UserTenantDto>> CreateAsync(CreateUserTenantRequest request, CancellationToken cancellationToken);
