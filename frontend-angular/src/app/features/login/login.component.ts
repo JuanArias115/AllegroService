@@ -3,7 +3,6 @@ import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FirebaseAuthService } from '../../core/auth/firebase-auth.service';
-import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +11,9 @@ import { ToastService } from '../../core/ui/toast.service';
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
-  loading = false;
+  loadingEmail = false;
+  loadingGoogle = false;
+  errorMessage = '';
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -22,30 +23,60 @@ export class LoginComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly auth: FirebaseAuthService,
-    private readonly toast: ToastService,
     private readonly router: Router
   ) {}
 
-  async submit(): Promise<void> {
+  get loading(): boolean {
+    return this.loadingEmail || this.loadingGoogle;
+  }
+
+  async signInWithEmailPassword(): Promise<void> {
     if (this.form.invalid || this.loading) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.loading = true;
+    this.errorMessage = '';
+    this.loadingEmail = true;
+
     try {
-      await this.auth.login(this.form.controls.email.value, this.form.controls.password.value);
+      await this.auth.signInWithEmailPassword(
+        this.form.controls.email.value,
+        this.form.controls.password.value
+      );
 
-      if (!this.auth.hasGlampingAccess) {
-        this.router.navigate(['/no-access']);
-        return;
-      }
-
-      this.router.navigate(['/']);
+      await this.resolvePostAuthNavigation();
     } catch {
-      this.toast.error('Invalid credentials or Firebase configuration issue.');
+      this.errorMessage = 'No fue posible iniciar sesion con email/password. Verifica tus credenciales.';
     } finally {
-      this.loading = false;
+      this.loadingEmail = false;
     }
+  }
+
+  async signInWithGoogle(): Promise<void> {
+    if (this.loading) {
+      return;
+    }
+
+    this.errorMessage = '';
+    this.loadingGoogle = true;
+
+    try {
+      await this.auth.signInWithGoogle();
+      await this.resolvePostAuthNavigation();
+    } catch {
+      this.errorMessage = 'No fue posible iniciar sesion con Google. Reintenta o valida la configuracion de Firebase.';
+      this.loadingGoogle = false;
+    }
+  }
+
+  private async resolvePostAuthNavigation(): Promise<void> {
+    if (!this.auth.hasGlampingAccess) {
+      this.errorMessage = 'Tu usuario no tiene glamping_id valido. Contacta a un administrador.';
+      await this.router.navigate(['/no-access']);
+      return;
+    }
+
+    await this.router.navigate(['/']);
   }
 }

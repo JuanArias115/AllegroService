@@ -28,6 +28,6 @@ export class ShellComponent {
   constructor(public readonly auth: FirebaseAuthService) {}
 
   async logout(): Promise<void> {
-    await this.auth.logout();
+    await this.auth.signOut();
   }
 }

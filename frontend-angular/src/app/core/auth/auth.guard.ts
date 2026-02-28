@@ -29,5 +29,9 @@ export const loginGuard: CanActivateFn = async (): Promise<boolean | UrlTree> =>
     return router.parseUrl('/');
   }
 
+  if (auth.isAuthenticated && !auth.hasGlampingAccess) {
+    return router.parseUrl('/no-access');
+  }
+
   return true;
 };

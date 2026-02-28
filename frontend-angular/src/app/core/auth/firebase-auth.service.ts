@@ -4,12 +4,17 @@ import { filter } from 'rxjs/operators';
 import { initializeApp } from 'firebase/app';
 import {
   Auth,
+  AuthError,
+  GoogleAuthProvider,
   User,
   browserLocalPersistence,
   getAuth,
+  getRedirectResult,
   onIdTokenChanged,
   setPersistence,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  signInWithRedirect,
   signOut
 } from 'firebase/auth';
 import { RuntimeConfigService } from '../config/runtime-config.service';
@@ -47,6 +52,12 @@ export class FirebaseAuthService {
     this.auth = getAuth(app);
     await setPersistence(this.auth, browserLocalPersistence);
 
+    try {
+      await getRedirectResult(this.auth);
+    } catch {
+      // Ignore redirect result errors to allow regular auth flow.
+    }
+
     onIdTokenChanged(this.auth, async (user) => {
       this.userSubject.next(user);
 
@@ -72,13 +83,33 @@ export class FirebaseAuthService {
     await firstValueFrom(this.initialized$.pipe(filter((ready) => ready)));
   }
 
-  async login(email: string, password: string): Promise<void> {
+  async signInWithEmailPassword(email: string, password: string): Promise<void> {
     this.ensureInitialized();
     await signInWithEmailAndPassword(this.auth!, email, password);
-    await this.refreshToken();
+    await this.getIdToken(true);
   }
 
-  async logout(): Promise<void> {
+  async signInWithGoogle(): Promise<void> {
+    this.ensureInitialized();
+
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    try {
+      await signInWithPopup(this.auth!, provider);
+      await this.getIdToken(true);
+      return;
+    } catch (error) {
+      if (this.shouldFallbackToRedirect(error)) {
+        await signInWithRedirect(this.auth!, provider);
+        return;
+      }
+
+      throw error;
+    }
+  }
+
+  async signOut(): Promise<void> {
     if (!this.auth) {
       return;
     }
@@ -89,12 +120,19 @@ export class FirebaseAuthService {
     this.claimsSubject.next(null);
   }
 
-  async getValidToken(): Promise<string | null> {
+  async getIdToken(forceRefresh = false): Promise<string | null> {
     if (!this.auth?.currentUser) {
       return null;
     }
 
-    return this.refreshToken();
+    const token = await this.auth.currentUser.getIdToken(forceRefresh);
+    this.tokenSubject.next(token);
+    this.claimsSubject.next(parseJwtClaims(token));
+    return token;
+  }
+
+  async refreshIdToken(): Promise<string | null> {
+    return this.getIdToken(true);
   }
 
   get isAuthenticated(): boolean {
@@ -103,6 +141,10 @@ export class FirebaseAuthService {
 
   get currentEmail(): string {
     return this.userSubject.value?.email ?? '';
+  }
+
+  get currentRole(): string | null {
+    return this.claimsSubject.value?.role ?? null;
   }
 
   get glampingId(): string | null {
@@ -119,14 +161,14 @@ export class FirebaseAuthService {
     }
   }
 
-  private async refreshToken(): Promise<string | null> {
-    if (!this.auth?.currentUser) {
-      return null;
+  private shouldFallbackToRedirect(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
     }
 
-    const token = await this.auth.currentUser.getIdToken(true);
-    this.tokenSubject.next(token);
-    this.claimsSubject.next(parseJwtClaims(token));
-    return token;
+    const authError = error as Partial<AuthError>;
+    return authError.code === 'auth/popup-blocked'
+      || authError.code === 'auth/cancelled-popup-request'
+      || authError.code === 'auth/operation-not-supported-in-this-environment';
   }
 }
