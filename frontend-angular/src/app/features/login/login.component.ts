@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FirebaseAuthService } from '../../core/auth/firebase-auth.service';
@@ -37,6 +38,7 @@ export class LoginComponent {
     }
 
     this.errorMessage = '';
+    this.auth.clearNoAccessState();
     this.loadingEmail = true;
 
     try {
@@ -46,8 +48,8 @@ export class LoginComponent {
       );
 
       await this.resolvePostAuthNavigation();
-    } catch {
-      this.errorMessage = 'No fue posible iniciar sesion con email/password. Verifica tus credenciales.';
+    } catch (error: unknown) {
+      this.errorMessage = this.errorText(error, 'No fue posible iniciar sesion con email/password. Verifica tus credenciales.');
     } finally {
       this.loadingEmail = false;
     }
@@ -59,24 +61,44 @@ export class LoginComponent {
     }
 
     this.errorMessage = '';
+    this.auth.clearNoAccessState();
     this.loadingGoogle = true;
 
     try {
       await this.auth.signInWithGoogle();
       await this.resolvePostAuthNavigation();
-    } catch {
-      this.errorMessage = 'No fue posible iniciar sesion con Google. Reintenta o valida la configuracion de Firebase.';
+    } catch (error: unknown) {
+      this.errorMessage = this.errorText(error, 'No fue posible iniciar sesion con Google. Reintenta o valida la configuracion de Firebase.');
+    } finally {
       this.loadingGoogle = false;
     }
   }
 
   private async resolvePostAuthNavigation(): Promise<void> {
-    if (!this.auth.hasGlampingAccess) {
-      this.errorMessage = 'Tu usuario no tiene glamping_id valido. Contacta a un administrador.';
+    try {
+      await this.auth.loadUserTenant(true);
+    } catch {
+      await this.router.navigate(['/no-access']);
+      return;
+    }
+
+    if (!this.auth.isActiveSession()) {
       await this.router.navigate(['/no-access']);
       return;
     }
 
     await this.router.navigate(['/']);
+  }
+
+  private errorText(error: unknown, fallback: string): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return fallback;
+    }
+
+    if (error.status === 403) {
+      return this.auth.noAccessState?.message ?? 'Tu cuenta no esta habilitada todavia. Contacta a un administrador.';
+    }
+
+    return fallback;
   }
 }

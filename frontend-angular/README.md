@@ -39,15 +39,26 @@ Puedes usar `src/assets/config.example.json` como referencia.
 - Persistence local (`browserLocalPersistence`).
 - En cada request API se envia `Authorization: Bearer <idToken>`.
 
-### Requisito de claims (multi-tenant)
+### Autorizacion y onboarding (nuevo flujo)
 
-El backend exige claim `glamping_id` (GUID) en el JWT.
+El frontend ya **no** valida `glamping_id` en el JWT.
 
-La app:
+Despues del login Firebase, la app consulta el backend para resolver tenant/rol/status del usuario.  
+Hace fallback automatico en este orden y cachea el endpoint valido:
 
-- decodifica el token para leer claims
-- valida formato GUID de `glamping_id`
-- bloquea acceso y redirige a `/no-access` si falta o es invalido
+- `GET /api/v1/user-tenants/me` (preferido)
+- `GET /api/v1/me`
+- `GET /api/v1/user-tenants/current`
+
+Con esa respuesta (directa o envuelta en `{ data }`) guarda sesion local con:
+
+- `firebaseUid`
+- `email`
+- `glampingId` (desde backend)
+- `role` (1=Admin,2=Reception,3=Restaurant,4=Inventory)
+- `status` (1=Pending,2=Active,3=Disabled)
+
+Solo `status = Active` permite entrar a la app.
 
 ### Configuracion requerida en Firebase Console
 
@@ -56,22 +67,46 @@ La app:
    - `localhost`
    - tu dominio productivo
 
-## Nota importante sobre usuarios Google y claims
+## No access / estados
 
-Cuando un usuario se crea por Google, normalmente no trae `glamping_id` por defecto.
-Debes asignarlo con Admin SDK / Cloud Function.
+Si el backend responde `403`:
 
-Despues de asignar claims:
+- `USER_NOT_ONBOARDED` -> pantalla `/no-access` con mensaje de habilitacion pendiente
+- `USER_DISABLED` -> pantalla `/no-access` con mensaje de cuenta deshabilitada
+- `403` generico -> pantalla `/no-access` con mensaje de sin acceso
 
-- cerrar sesion e iniciar sesion de nuevo, o
-- forzar refresh de token (la app ya intenta refresh)
+Si responde `401`:
 
-## Manejo de 401 en API
+- intenta 1 refresh de token + retry
+- si falla: logout y redireccion a `/login`
 
-El interceptor de errores:
+## Primer admin y alta de usuarios
 
-- ante `401`: intenta 1 refresh + retry de request
-- si sigue `401`: cierra sesion y redirige a `/login`
+El onboarding ahora es por PostgreSQL tabla `UserTenants` (backend), no por custom claims.
+
+Si aun no tienes un admin activo, crea uno directo en BD:
+
+```sql
+INSERT INTO \"UserTenants\"
+(\"Id\",\"FirebaseUid\",\"Email\",\"GlampingId\",\"Role\",\"Status\",\"CreatedAt\",\"UpdatedAt\")
+VALUES
+(gen_random_uuid(),'UID_FIREBASE_ADMIN','admin@tu-dominio.com','<GLAMPING_GUID>',1,2,now(),now());
+```
+
+Luego, si el endpoint existe y el usuario tiene rol Admin, puedes gestionar usuarios por API:
+
+- `GET/POST/PUT/DELETE /api/v1/user-tenants`
+
+Ejemplo create:
+
+```json
+{
+  "firebaseUid": "UID_FIREBASE_USUARIO",
+  "email": "recepcion@tu-dominio.com",
+  "role": 2,
+  "status": 2
+}
+```
 
 ## Ejecutar local (sin Docker)
 
@@ -117,14 +152,10 @@ El servicio `web` consume:
 
 Durante startup del contenedor `web`, `docker-entrypoint.sh` reemplaza placeholders en `assets/config.json`.
 
-## Asignar claims (opcional recomendado)
+## Menu por rol
 
-Hay script auxiliar en `tools/firebase-admin` para asignar custom claims a usuarios.
+El sidebar usa el rol resuelto por backend:
 
-Ejemplo:
-
-```bash
-cd tools/firebase-admin
-npm install
-node set-claims.js --serviceAccount=./serviceAccountKey.json --uid=USER_UID --glamping_id=11111111-1111-1111-1111-111111111111 --role=Admin
-```
+- `Admin`: ve todos los modulos
+- `Inventory`: ve modulos de inventario (categories/products/locations)
+- otros roles: no ven modulos de inventario

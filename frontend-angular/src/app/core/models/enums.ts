@@ -34,6 +34,19 @@ export const PAYMENT_METHOD_OPTIONS = [
   { value: 4, label: 'Online' }
 ];
 
+export const USER_TENANT_ROLE_OPTIONS = [
+  { value: 1, label: 'Admin' },
+  { value: 2, label: 'Reception' },
+  { value: 3, label: 'Restaurant' },
+  { value: 4, label: 'Inventory' }
+];
+
+export const USER_TENANT_STATUS_OPTIONS = [
+  { value: 1, label: 'Pending' },
+  { value: 2, label: 'Active' },
+  { value: 3, label: 'Disabled' }
+];
+
 export function labelOf(options: { value: number; label: string }[], value: number): string {
   return options.find((item) => item.value === value)?.label ?? String(value);
 }

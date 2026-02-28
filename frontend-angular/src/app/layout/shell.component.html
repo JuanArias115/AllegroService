@@ -4,6 +4,7 @@
     <nav class="space-y-1">
       <a
         *ngFor="let item of navItems"
+        [class.hidden]="!canShow(item)"
         [routerLink]="item.path"
         routerLinkActive="bg-slate-900 text-white"
         [routerLinkActiveOptions]="{ exact: item.path === '/' }"
@@ -19,6 +20,7 @@
       <div>
         <p class="text-xs uppercase tracking-wider text-muted">Tenant</p>
         <p class="text-sm font-semibold">{{ auth.glampingId ?? 'N/A' }}</p>
+        <p class="text-xs text-muted">Rol: {{ auth.currentRoleLabel }} | Estado: {{ auth.currentStatusLabel }}</p>
       </div>
       <div class="flex items-center gap-4">
         <span class="text-sm text-slate-600">{{ auth.currentEmail }}</span>

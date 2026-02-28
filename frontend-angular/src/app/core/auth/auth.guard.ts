@@ -12,7 +12,13 @@ export const authGuard: CanActivateFn = async (): Promise<boolean | UrlTree> => 
     return router.parseUrl('/login');
   }
 
-  if (!auth.hasGlampingAccess) {
+  try {
+    await auth.loadUserTenant();
+  } catch {
+    return router.parseUrl('/no-access');
+  }
+
+  if (!auth.isActiveSession()) {
     return router.parseUrl('/no-access');
   }
 
@@ -25,12 +31,17 @@ export const loginGuard: CanActivateFn = async (): Promise<boolean | UrlTree> =>
 
   await auth.waitUntilInitialized();
 
-  if (auth.isAuthenticated && auth.hasGlampingAccess) {
-    return router.parseUrl('/');
-  }
+  if (auth.isAuthenticated) {
+    try {
+      await auth.loadUserTenant();
+      if (auth.isActiveSession()) {
+        return router.parseUrl('/');
+      }
 
-  if (auth.isAuthenticated && !auth.hasGlampingAccess) {
-    return router.parseUrl('/no-access');
+      return router.parseUrl('/no-access');
+    } catch {
+      return router.parseUrl('/no-access');
+    }
   }
 
   return true;

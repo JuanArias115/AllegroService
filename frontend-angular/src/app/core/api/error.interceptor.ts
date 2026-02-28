@@ -61,6 +61,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 403) {
+        auth.setNoAccessFromError(error);
         void router.navigate(['/no-access']);
       } else if (error.status >= 400) {
         toast.error(extractErrorMessage(error));

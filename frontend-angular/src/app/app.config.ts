@@ -11,6 +11,13 @@ function initializeApp(runtimeConfig: RuntimeConfigService, auth: FirebaseAuthSe
   return async () => {
     await runtimeConfig.load();
     await auth.initialize();
+    if (auth.isAuthenticated) {
+      try {
+        await auth.loadUserTenant();
+      } catch {
+        // Guard/no-access view will handle blocked users.
+      }
+    }
   };
 }
 
