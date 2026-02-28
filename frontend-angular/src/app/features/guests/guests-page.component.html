@@ -1,0 +1,59 @@
+<div class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="text-xl font-bold">Guests</h2>
+    <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white" (click)="openCreate()">New guest</button>
+  </div>
+
+  <div class="rounded-xl bg-panel p-3 shadow-card">
+    <input
+      type="text"
+      [value]="search"
+      (input)="onSearch($any($event.target).value)"
+      placeholder="Search by name, email, phone"
+      class="w-full rounded-lg border border-slate-300 px-3 py-2"
+    />
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows"
+    [loading]="loading"
+    [page]="page"
+    [pageSize]="pageSize"
+    [total]="total"
+    (pageChange)="onPageChange($event)"
+    (edit)="openEdit($event)"
+    (remove)="remove($event)"
+  ></app-data-table>
+</div>
+
+<app-modal [open]="modalOpen" [title]="selectedId ? 'Edit guest' : 'Create guest'" (close)="modalOpen = false">
+  <form class="grid gap-3 md:grid-cols-2" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="md:col-span-2">
+      <app-form-field label="Full name">
+        <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="fullName" />
+      </app-form-field>
+    </div>
+
+    <app-form-field label="Document">
+      <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="documentId" />
+    </app-form-field>
+
+    <app-form-field label="Phone">
+      <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="phone" />
+    </app-form-field>
+
+    <div class="md:col-span-2">
+      <app-form-field label="Email">
+        <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="email" />
+      </app-form-field>
+    </div>
+
+    <div class="md:col-span-2 flex justify-end gap-2 pt-2">
+      <button type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm" (click)="modalOpen = false">Cancel</button>
+      <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

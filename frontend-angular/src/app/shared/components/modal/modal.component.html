@@ -1,0 +1,9 @@
+<div *ngIf="open" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4">
+  <div class="w-full max-w-2xl rounded-xl bg-panel p-5 shadow-card">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-ink">{{ title }}</h3>
+      <button class="rounded border border-slate-300 px-2 py-1 text-xs" (click)="close.emit()">Close</button>
+    </div>
+    <ng-content></ng-content>
+  </div>
+</div>

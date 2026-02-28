@@ -30,5 +30,28 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  web:
+    build:
+      context: ./frontend-angular
+      dockerfile: ./Dockerfile
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-/api}
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY:-}
+      FIREBASE_AUTH_DOMAIN: ${FIREBASE_AUTH_DOMAIN:-}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_APP_ID: ${FIREBASE_APP_ID:-}
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - api
+      - web
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+    - "4400:80"
+    restart: unless-stopped
+
 volumes:
   pgdata:

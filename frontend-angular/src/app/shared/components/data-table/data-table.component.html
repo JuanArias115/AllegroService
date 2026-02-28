@@ -1,0 +1,34 @@
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-panel shadow-card">
+  <div *ngIf="loading" class="p-6 text-sm text-muted">Loading...</div>
+
+  <table *ngIf="!loading" class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        <th *ngFor="let column of columns" class="px-4 py-3 text-left font-semibold text-slate-700">{{ column.label }}</th>
+        <th *ngIf="showActions" class="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody class="divide-y divide-slate-100 bg-white">
+      <tr *ngFor="let row of rows" class="hover:bg-slate-50">
+        <td *ngFor="let column of columns" class="px-4 py-3 text-slate-700">{{ toDisplay(row[column.key]) }}</td>
+        <td *ngIf="showActions" class="px-4 py-3 text-right">
+          <button class="mr-2 rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700" (click)="edit.emit(row)">Edit</button>
+          <button class="rounded-md border border-red-300 px-3 py-1 text-xs font-semibold text-red-700" (click)="remove.emit(row)">Delete</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="rows.length === 0">
+        <td [attr.colspan]="columns.length + (showActions ? 1 : 0)" class="px-4 py-6 text-center text-muted">No records.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs text-muted">
+    <span>Page {{ page }} of {{ totalPages }} ({{ total }} total)</span>
+    <div class="space-x-2">
+      <button class="rounded-md border border-slate-300 px-3 py-1" (click)="previousPage()" [disabled]="page <= 1">Prev</button>
+      <button class="rounded-md border border-slate-300 px-3 py-1" (click)="nextPage()" [disabled]="page >= totalPages">Next</button>
+    </div>
+  </div>
+</div>

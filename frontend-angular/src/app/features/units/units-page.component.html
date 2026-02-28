@@ -1,0 +1,59 @@
+<div class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="text-xl font-bold">Units</h2>
+    <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white" (click)="openCreate()">New unit</button>
+  </div>
+
+  <div class="rounded-xl bg-panel p-3 shadow-card">
+    <input
+      type="text"
+      [value]="search"
+      (input)="onSearch($any($event.target).value)"
+      placeholder="Search by name or type"
+      class="w-full rounded-lg border border-slate-300 px-3 py-2"
+    />
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows"
+    [loading]="loading"
+    [page]="page"
+    [pageSize]="pageSize"
+    [total]="total"
+    (pageChange)="onPageChange($event)"
+    (edit)="openEdit($event)"
+    (remove)="remove($event)"
+  ></app-data-table>
+</div>
+
+<app-modal [open]="modalOpen" [title]="selectedId ? 'Edit unit' : 'Create unit'" (close)="modalOpen = false">
+  <form class="grid gap-3 md:grid-cols-2" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="md:col-span-2">
+      <app-form-field label="Name">
+        <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="name" />
+      </app-form-field>
+    </div>
+
+    <app-form-field label="Type">
+      <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="type" />
+    </app-form-field>
+
+    <app-form-field label="Capacity">
+      <input type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="capacity" />
+    </app-form-field>
+
+    <app-form-field label="Status">
+      <select class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="status">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </app-form-field>
+
+    <div class="md:col-span-2 flex justify-end gap-2 pt-2">
+      <button type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm" (click)="modalOpen = false">Cancel</button>
+      <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

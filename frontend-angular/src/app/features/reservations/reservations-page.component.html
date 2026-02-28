@@ -1,0 +1,111 @@
+<div class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="text-xl font-bold">Reservations</h2>
+    <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white" (click)="openCreate()">New reservation</button>
+  </div>
+
+  <div class="grid gap-3 rounded-xl bg-panel p-3 shadow-card md:grid-cols-3">
+    <input
+      type="text"
+      [value]="search"
+      (input)="onSearch($any($event.target).value)"
+      placeholder="Search by code or guest"
+      class="rounded-lg border border-slate-300 px-3 py-2"
+    />
+
+    <select class="rounded-lg border border-slate-300 px-3 py-2" [value]="selectedStatus" (change)="onStatusChange($any($event.target).value)">
+      <option [value]="0">All statuses</option>
+      <option *ngFor="let status of statusOptions" [value]="status.value">{{ status.label }}</option>
+    </select>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-panel shadow-card">
+    <div *ngIf="loading" class="p-6 text-sm text-muted">Loading...</div>
+
+    <table *ngIf="!loading" class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold">Code</th>
+          <th class="px-4 py-3 text-left font-semibold">Guest</th>
+          <th class="px-4 py-3 text-left font-semibold">Unit</th>
+          <th class="px-4 py-3 text-left font-semibold">Dates</th>
+          <th class="px-4 py-3 text-left font-semibold">Status</th>
+          <th class="px-4 py-3 text-right font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 bg-white">
+        <tr *ngFor="let reservation of filteredReservations">
+          <td class="px-4 py-3 font-semibold">{{ reservation.code }}</td>
+          <td class="px-4 py-3">{{ guestLabel(reservation.guestId) }}</td>
+          <td class="px-4 py-3">{{ unitLabel(reservation.unitId) }}</td>
+          <td class="px-4 py-3">{{ reservation.checkInDate }} -> {{ reservation.checkOutDate }}</td>
+          <td class="px-4 py-3">{{ statusLabel(reservation.status) }}</td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <button class="rounded border border-slate-300 px-2 py-1 text-xs" (click)="viewDetail(reservation)">Detail</button>
+            <button class="rounded border border-slate-300 px-2 py-1 text-xs" (click)="openEdit(reservation)">Edit</button>
+            <button class="rounded border border-red-300 px-2 py-1 text-xs text-red-700" (click)="remove(reservation)">Delete</button>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredReservations.length === 0">
+          <td colspan="6" class="px-4 py-6 text-center text-muted">No reservations found.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3 text-xs text-muted">
+      <span>Page {{ page }} ({{ total }} total)</span>
+      <div class="space-x-2">
+        <button class="rounded-md border border-slate-300 px-3 py-1" (click)="onPageChange(-1)" [disabled]="page <= 1">Prev</button>
+        <button class="rounded-md border border-slate-300 px-3 py-1" (click)="onPageChange(1)">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-modal [open]="modalOpen" [title]="selectedId ? 'Edit reservation' : 'Create reservation'" (close)="modalOpen = false">
+  <form class="grid gap-3 md:grid-cols-2" [formGroup]="form" (ngSubmit)="submit()">
+    <app-form-field label="Code">
+      <input class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="code" [readonly]="!!selectedId" />
+    </app-form-field>
+
+    <app-form-field label="Guest">
+      <select class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="guestId">
+        <option value="">Select guest</option>
+        <option *ngFor="let guest of guests" [value]="guest.id">{{ guest.fullName }}</option>
+      </select>
+    </app-form-field>
+
+    <app-form-field label="Unit (optional)">
+      <select class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="unitId">
+        <option value="">No unit</option>
+        <option *ngFor="let unit of units" [value]="unit.id">{{ unit.name }}</option>
+      </select>
+    </app-form-field>
+
+    <app-form-field label="Status">
+      <select class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="status">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </app-form-field>
+
+    <app-form-field label="Check-in date">
+      <input type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="checkInDate" />
+    </app-form-field>
+
+    <app-form-field label="Check-out date">
+      <input type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="checkOutDate" />
+    </app-form-field>
+
+    <app-form-field label="Total estimated">
+      <input type="number" step="0.01" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="totalEstimated" />
+    </app-form-field>
+
+    <div class="md:col-span-2 flex justify-end gap-2 pt-2">
+      <button type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm" (click)="modalOpen = false">Cancel</button>
+      <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </form>
+</app-modal>
