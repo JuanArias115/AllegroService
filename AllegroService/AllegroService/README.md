@@ -21,23 +21,31 @@ Sistema multi-tenant para administracion de glampings con EF Core Code First + A
   - `Validators`: reglas FluentValidation
 - `Api/*`
   - `Controllers`: endpoints `/api/v1/*`
-  - `Auth`: claim helpers + contexto de usuario
-  - `Middlewares`: errores globales + enforcement de `glamping_id`
+  - `Auth`: claim helpers + contexto de tenant/usuario actual
+  - `Middlewares`: errores globales + resolucion de tenant por Firebase UID (`sub`)
   - `Common`: respuesta estandar `{ data, errors }`
 
 ## Multi-tenant y claims
 
-Todas las operaciones usan `GlampingId` desde JWT claim `glamping_id`.
-Nunca se toma tenant desde el body.
+Todas las operaciones usan `GlampingId` resuelto en backend desde BD (tabla `UserTenants`), buscando por claim `sub` (Firebase UID). Nunca se toma tenant desde el body.
 
 Claims esperados:
 
-- `sub`: user id (se intenta parsear a Guid para auditoria)
+- `sub`: Firebase UID (requerido)
 - `email`: opcional
-- `glamping_id`: requerido, debe ser Guid valido
-- `role`: opcional para policies (`Admin`, `Reception`, `Restaurant`, `Inventory`)
+- `role`: opcional en token (se sobreescribe/inyecta desde BD para policies)
 
-Si falta `glamping_id`, la API responde `403`.
+Si el usuario autenticado no esta asociado en `UserTenants` (o no esta `Active`), la API responde `403` con `USER_NOT_ONBOARDED`.
+
+### Modelo UserTenants
+
+`UserTenant`:
+- `Id` (Guid)
+- `FirebaseUid` (string, UNIQUE)
+- `Email` (nullable)
+- `GlampingId` (FK)
+- `Role` (`Admin`, `Reception`, `Restaurant`, `Inventory`)
+- `Status` (`Pending`, `Active`, `Disabled`)
 
 ## Firebase JWT config
 
@@ -61,7 +69,8 @@ La API valida:
 `AppDbContext` setea automaticamente:
 
 - `CreatedAt`, `UpdatedAt`
-- `CreatedByUserId`, `UpdatedByUserId` desde claim `sub` (si parsea a Guid)
+- `CreatedByUserId`, `UpdatedByUserId` (si existe UserTenant.Id)
+- `CreatedByFirebaseUid`, `UpdatedByFirebaseUid` desde Firebase `sub`
 
 ## Endpoints principales
 
@@ -73,6 +82,7 @@ CRUD:
 - `GET/POST/PUT/DELETE /api/v1/categories`
 - `GET/POST/PUT/DELETE /api/v1/locations`
 - `GET/POST/PUT/DELETE /api/v1/reservations`
+- `GET/POST/PUT/DELETE /api/v1/user-tenants` (solo `Admin`)
 
 Lectura:
 
@@ -152,8 +162,16 @@ Si no tienes SDK local compatible, puedes usar Docker:
 ```bash
 docker run --rm -v "$PWD":/src -w /src mcr.microsoft.com/dotnet/sdk:10.0 bash -lc \
 "dotnet tool install --tool-path /tmp/tools dotnet-ef --version 10.* && \
- /tmp/tools/dotnet-ef database update"
+/tmp/tools/dotnet-ef database update"
 ```
+
+## Onboarding inicial (sin custom claims)
+
+1. El usuario inicia sesion en Firebase y obtiene JWT valido.
+2. Backend identifica al usuario por `sub`.
+3. Debe existir fila activa en `UserTenants` para ese `FirebaseUid`.
+
+Seed incluye un registro admin con `FirebaseUid = CHANGE_ME_FIREBASE_UID`. Antes del primer uso, actualiza ese valor por el UID real del admin (y deja `Status = Active`), o crea un registro equivalente en BD.
 
 ## Ejemplos de uso (Bearer)
 

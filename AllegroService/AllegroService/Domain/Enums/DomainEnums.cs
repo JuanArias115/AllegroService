@@ -7,6 +7,21 @@ public enum UserStatus
     Suspended = 3
 }
 
+public enum UserTenantRole
+{
+    Admin = 1,
+    Reception = 2,
+    Restaurant = 3,
+    Inventory = 4
+}
+
+public enum UserTenantStatus
+{
+    Pending = 1,
+    Active = 2,
+    Disabled = 3
+}
+
 public enum UnitStatus
 {
     Available = 1,

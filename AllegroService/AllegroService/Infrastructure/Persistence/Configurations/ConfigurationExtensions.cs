@@ -12,6 +12,8 @@ internal static class ConfigurationExtensions
         builder.Property(x => x.UpdatedAt).IsRequired();
         builder.Property(x => x.CreatedByUserId);
         builder.Property(x => x.UpdatedByUserId);
+        builder.Property(x => x.CreatedByFirebaseUid).HasMaxLength(128);
+        builder.Property(x => x.UpdatedByFirebaseUid).HasMaxLength(128);
     }
 
     public static void ConfigureTenantScope<TEntity>(this EntityTypeBuilder<TEntity> builder)

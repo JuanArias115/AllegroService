@@ -8,6 +8,8 @@ public static class SeedData
 {
     public static readonly Guid DefaultGlampingId = Guid.Parse("8A11E29D-DFBA-4E64-8956-35A3D70AC15F");
     public static readonly Guid DefaultAdminUserId = Guid.Parse("9C7093D5-0365-4F9C-8BFD-9A6C777B9A47");
+    public static readonly Guid DefaultAdminUserTenantId = Guid.Parse("4FA97C3D-FCB0-43E5-B44B-9AE72C6E01A4");
+    public const string DefaultAdminFirebaseUid = "CHANGE_ME_FIREBASE_UID";
     public static readonly Guid DefaultCategoryFoodId = Guid.Parse("A15703C5-F0AB-4D84-9F6D-0549E750DD57");
     public static readonly Guid DefaultCategoryDrinksId = Guid.Parse("95FCB0AC-4D68-44A7-86AA-58F1E129851F");
     public static readonly Guid DefaultCategoryExtrasId = Guid.Parse("3DC17971-EC2A-48D2-B6B6-D52CF52393AA");
@@ -27,7 +29,9 @@ public static class SeedData
             CreatedAt = SeedTimestamp,
             UpdatedAt = SeedTimestamp,
             CreatedByUserId = null,
-            UpdatedByUserId = null
+            UpdatedByUserId = null,
+            CreatedByFirebaseUid = null,
+            UpdatedByFirebaseUid = null
         });
 
         modelBuilder.Entity<User>().HasData(new User
@@ -41,7 +45,25 @@ public static class SeedData
             CreatedAt = SeedTimestamp,
             UpdatedAt = SeedTimestamp,
             CreatedByUserId = null,
-            UpdatedByUserId = null
+            UpdatedByUserId = null,
+            CreatedByFirebaseUid = null,
+            UpdatedByFirebaseUid = null
+        });
+
+        modelBuilder.Entity<UserTenant>().HasData(new UserTenant
+        {
+            Id = DefaultAdminUserTenantId,
+            FirebaseUid = DefaultAdminFirebaseUid,
+            Email = "admin@demo-glamping.local",
+            GlampingId = DefaultGlampingId,
+            Role = UserTenantRole.Admin,
+            Status = UserTenantStatus.Active,
+            CreatedAt = SeedTimestamp,
+            UpdatedAt = SeedTimestamp,
+            CreatedByUserId = null,
+            UpdatedByUserId = null,
+            CreatedByFirebaseUid = null,
+            UpdatedByFirebaseUid = null
         });
 
         modelBuilder.Entity<ProductCategory>().HasData(
@@ -53,7 +75,9 @@ public static class SeedData
                 CreatedAt = SeedTimestamp,
                 UpdatedAt = SeedTimestamp,
                 CreatedByUserId = DefaultAdminUserId,
-                UpdatedByUserId = DefaultAdminUserId
+                UpdatedByUserId = DefaultAdminUserId,
+                CreatedByFirebaseUid = DefaultAdminFirebaseUid,
+                UpdatedByFirebaseUid = DefaultAdminFirebaseUid
             },
             new ProductCategory
             {
@@ -63,7 +87,9 @@ public static class SeedData
                 CreatedAt = SeedTimestamp,
                 UpdatedAt = SeedTimestamp,
                 CreatedByUserId = DefaultAdminUserId,
-                UpdatedByUserId = DefaultAdminUserId
+                UpdatedByUserId = DefaultAdminUserId,
+                CreatedByFirebaseUid = DefaultAdminFirebaseUid,
+                UpdatedByFirebaseUid = DefaultAdminFirebaseUid
             },
             new ProductCategory
             {
@@ -73,7 +99,9 @@ public static class SeedData
                 CreatedAt = SeedTimestamp,
                 UpdatedAt = SeedTimestamp,
                 CreatedByUserId = DefaultAdminUserId,
-                UpdatedByUserId = DefaultAdminUserId
+                UpdatedByUserId = DefaultAdminUserId,
+                CreatedByFirebaseUid = DefaultAdminFirebaseUid,
+                UpdatedByFirebaseUid = DefaultAdminFirebaseUid
             });
 
         modelBuilder.Entity<Location>().HasData(new Location
@@ -86,7 +114,9 @@ public static class SeedData
             CreatedAt = SeedTimestamp,
             UpdatedAt = SeedTimestamp,
             CreatedByUserId = DefaultAdminUserId,
-            UpdatedByUserId = DefaultAdminUserId
+            UpdatedByUserId = DefaultAdminUserId,
+            CreatedByFirebaseUid = DefaultAdminFirebaseUid,
+            UpdatedByFirebaseUid = DefaultAdminFirebaseUid
         });
     }
 }

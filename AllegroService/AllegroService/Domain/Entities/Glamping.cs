@@ -11,6 +11,7 @@ public class Glamping : AuditableEntity
     public string Currency { get; set; } = string.Empty;
 
     public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>();
     public ICollection<Guest> Guests { get; set; } = new List<Guest>();
     public ICollection<Unit> Units { get; set; } = new List<Unit>();
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();

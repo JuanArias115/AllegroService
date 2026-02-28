@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IStayService, StayService>();
         services.AddScoped<IFolioService, FolioService>();
+        services.AddScoped<IUserTenantService, UserTenantService>();
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 

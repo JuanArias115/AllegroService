@@ -30,6 +30,7 @@ builder.Services.Configure<FirebaseOptions>(builder.Configuration.GetSection(Fir
 builder.Services.Configure<BusinessRulesOptions>(builder.Configuration.GetSection(BusinessRulesOptions.SectionName));
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ITenantContextAccessor, TenantContextAccessor>();
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.AddApplicationLayer();
@@ -132,7 +133,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
-app.UseMiddleware<RequireGlampingClaimMiddleware>();
+app.UseMiddleware<ResolveTenantContextMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

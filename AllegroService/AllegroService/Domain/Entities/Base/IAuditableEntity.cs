@@ -6,4 +6,6 @@ public interface IAuditableEntity
     DateTimeOffset UpdatedAt { get; set; }
     Guid? CreatedByUserId { get; set; }
     Guid? UpdatedByUserId { get; set; }
+    string? CreatedByFirebaseUid { get; set; }
+    string? UpdatedByFirebaseUid { get; set; }
 }

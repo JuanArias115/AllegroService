@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Glamping> Glampings => Set<Glamping>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<UserTenant> UserTenants => Set<UserTenant>();
     public DbSet<Guest> Guests => Set<Guest>();
     public DbSet<Unit> Units => Set<Unit>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
@@ -61,6 +62,7 @@ public class AppDbContext : DbContext
     {
         var now = DateTimeOffset.UtcNow;
         var userId = _currentUserContext?.GetCurrentUserId();
+        var firebaseUid = _currentUserContext?.GetCurrentFirebaseUid();
 
         foreach (var entry in ChangeTracker.Entries<IAuditableEntity>())
         {
@@ -77,6 +79,12 @@ public class AppDbContext : DbContext
                     entry.Entity.CreatedByUserId = userId.Value;
                     entry.Entity.UpdatedByUserId = userId.Value;
                 }
+
+                if (!string.IsNullOrWhiteSpace(firebaseUid))
+                {
+                    entry.Entity.CreatedByFirebaseUid = firebaseUid;
+                    entry.Entity.UpdatedByFirebaseUid = firebaseUid;
+                }
             }
             else if (entry.State == EntityState.Modified)
             {
@@ -84,6 +92,11 @@ public class AppDbContext : DbContext
                 if (userId.HasValue)
                 {
                     entry.Entity.UpdatedByUserId = userId.Value;
+                }
+
+                if (!string.IsNullOrWhiteSpace(firebaseUid))
+                {
+                    entry.Entity.UpdatedByFirebaseUid = firebaseUid;
                 }
             }
         }
