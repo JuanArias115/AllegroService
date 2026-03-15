@@ -5,8 +5,7 @@ COPY ./AllegroService/AllegroService/AllegroService.csproj ./AllegroService/Alle
 RUN dotnet restore ./AllegroService/AllegroService/AllegroService.csproj
 
 COPY . .
-WORKDIR /src/AllegroService/AllegroService
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish ./AllegroService/AllegroService/AllegroService.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app

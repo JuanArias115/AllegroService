@@ -1,5 +1,6 @@
 using AllegroService.Application.Common;
 using AllegroService.Application.DTOs.Common;
+using AllegroService.Application.DTOs.Folios;
 using AllegroService.Application.DTOs.Stays;
 
 namespace AllegroService.Application.Interfaces;
