@@ -63,7 +63,15 @@ public class FolioService : IFolioService
                 charge.Total,
                 chargeItems
                     .Where(item => item.ChargeId == charge.Id)
-                    .Select(item => new ChargeItemDto(item.Id, item.ProductId, item.Qty, item.UnitPrice, item.Total))
+                    .Select(item => new ChargeItemDto(
+                        item.Id,
+                        item.ProductId,
+                        item.ProductId.HasValue
+                            ? _dbContext.Products.Where(p => p.GlampingId == glampingId && p.Id == item.ProductId.Value).Select(p => p.Name).FirstOrDefault()
+                            : null,
+                        item.Qty,
+                        item.UnitPrice,
+                        item.Total))
                     .ToList(),
                 charge.CreatedAt))
             .ToList();
@@ -113,6 +121,7 @@ public class FolioService : IFolioService
         var chargeId = Guid.NewGuid();
         var chargeItems = new List<ChargeItem>();
         var stockMovements = new List<StockMovement>();
+        var products = new Dictionary<Guid, Product>();
 
         decimal chargeQty;
         decimal chargeUnitPrice;
@@ -138,7 +147,7 @@ public class FolioService : IFolioService
         {
             var productIds = normalizedItems.Where(x => x.ProductId.HasValue).Select(x => x.ProductId!.Value).Distinct().ToList();
 
-            var products = await _dbContext.Products
+            products = await _dbContext.Products
                 .Where(x => x.GlampingId == glampingId && productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
 
@@ -287,7 +296,13 @@ public class FolioService : IFolioService
             charge.Qty,
             charge.UnitPrice,
             charge.Total,
-            chargeItems.Select(item => new ChargeItemDto(item.Id, item.ProductId, item.Qty, item.UnitPrice, item.Total)).ToList(),
+            chargeItems.Select(item => new ChargeItemDto(
+                item.Id,
+                item.ProductId,
+                item.ProductId.HasValue ? products[item.ProductId.Value].Name : null,
+                item.Qty,
+                item.UnitPrice,
+                item.Total)).ToList(),
             charge.CreatedAt);
 
         return ServiceResult<ChargeDto>.Success(chargeDto, StatusCodes.Status201Created);

@@ -1,5 +1,6 @@
 using AllegroService.Api.Common;
 using AllegroService.Application.DTOs.Common;
+using AllegroService.Application.DTOs.Folios;
 using AllegroService.Application.DTOs.Reservations;
 using AllegroService.Application.DTOs.Stays;
 using AllegroService.Application.Interfaces;
@@ -42,4 +43,12 @@ public class ReservationsController : BaseApiController
     [HttpPost("{id:guid}/check-in")]
     public async Task<IActionResult> CheckIn(Guid id, [FromBody] CheckInRequest request, CancellationToken cancellationToken)
         => FromResult(await _stayService.CheckInAsync(id, request, cancellationToken));
+
+    [HttpGet("{id:guid}/consumptions")]
+    public async Task<IActionResult> GetConsumptions(Guid id, CancellationToken cancellationToken)
+        => FromResult(await _stayService.GetReservationConsumptionsAsync(id, cancellationToken));
+
+    [HttpPost("{id:guid}/consumptions")]
+    public async Task<IActionResult> AddConsumption(Guid id, [FromBody] AddChargeRequest request, CancellationToken cancellationToken)
+        => FromResult(await _stayService.AddReservationConsumptionAsync(id, request, cancellationToken));
 }

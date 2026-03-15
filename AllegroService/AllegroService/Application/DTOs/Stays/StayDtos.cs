@@ -28,3 +28,48 @@ public class CheckOutRequest
 }
 
 public sealed record CheckOutResponse(Guid StayId, Guid FolioId, decimal Balance, DateTimeOffset CheckOutAt);
+
+public sealed record ConsumptionItemDto(
+    Guid Id,
+    Guid? ProductId,
+    string? ProductName,
+    decimal Qty,
+    decimal UnitPrice,
+    decimal Total);
+
+public sealed record ConsumptionDto(
+    Guid Id,
+    Guid StayId,
+    Guid? ReservationId,
+    Guid FolioId,
+    ChargeSource Source,
+    string Description,
+    decimal Qty,
+    decimal UnitPrice,
+    decimal Total,
+    DateTimeOffset CreatedAt,
+    IReadOnlyCollection<ConsumptionItemDto> Items);
+
+public sealed record CheckoutSummaryItemDto(
+    string Label,
+    decimal Qty,
+    decimal UnitPrice,
+    decimal Total,
+    string? Source);
+
+public sealed record CheckoutSummaryTotalsDto(
+    decimal ChargesTotal,
+    decimal PaymentsTotal,
+    decimal Balance);
+
+public sealed record CheckoutSummaryDto(
+    Guid StayId,
+    Guid? ReservationId,
+    string? ReservationCode,
+    string? GuestName,
+    string? Phone,
+    DateTimeOffset CheckInAt,
+    DateTimeOffset? CheckOutAt,
+    CheckoutSummaryTotalsDto Totals,
+    IReadOnlyCollection<CheckoutSummaryItemDto> Items,
+    string Message);

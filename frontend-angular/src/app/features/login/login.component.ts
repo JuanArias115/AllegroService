@@ -3,12 +3,14 @@ import { Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FirebaseAuthService } from '../../core/auth/firebase-auth.service';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule, IconComponent],
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
@@ -24,7 +26,8 @@ export class LoginComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly auth: FirebaseAuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly translate: TranslateService
   ) {}
 
   get loading(): boolean {
@@ -49,7 +52,7 @@ export class LoginComponent {
 
       await this.resolvePostAuthNavigation();
     } catch (error: unknown) {
-      this.errorMessage = this.errorText(error, 'No fue posible iniciar sesion con email/password. Verifica tus credenciales.');
+      this.errorMessage = this.errorText(error, 'errors.loginEmail');
     } finally {
       this.loadingEmail = false;
     }
@@ -68,7 +71,7 @@ export class LoginComponent {
       await this.auth.signInWithGoogle();
       await this.resolvePostAuthNavigation();
     } catch (error: unknown) {
-      this.errorMessage = this.errorText(error, 'No fue posible iniciar sesion con Google. Reintenta o valida la configuracion de Firebase.');
+      this.errorMessage = this.errorText(error, 'errors.loginGoogle');
     } finally {
       this.loadingGoogle = false;
     }
@@ -92,13 +95,13 @@ export class LoginComponent {
 
   private errorText(error: unknown, fallback: string): string {
     if (!(error instanceof HttpErrorResponse)) {
-      return fallback;
+      return this.translate.instant(fallback);
     }
 
     if (error.status === 403) {
-      return this.auth.noAccessState?.message ?? 'Tu cuenta no esta habilitada todavia. Contacta a un administrador.';
+      return this.auth.noAccessState?.message ?? this.translate.instant('noaccess.generic');
     }
 
-    return fallback;
+    return this.translate.instant(fallback);
   }
 }

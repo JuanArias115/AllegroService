@@ -1,65 +1,219 @@
-<div class="space-y-4" *ngIf="reservation; else loadingTpl">
-  <div class="flex items-center justify-between">
+<div class="space-y-5" *ngIf="reservation; else loadingTpl">
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
-      <a routerLink="/reservations" class="text-xs font-semibold uppercase text-accent">Back</a>
-      <h2 class="mt-1 text-2xl font-bold">Reservation {{ reservation.code }}</h2>
-    </div>
-    <button
-      *ngIf="reservation.status === 2"
-      class="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white"
-      (click)="openCheckInModal()"
-    >
-      Check-in
-    </button>
-  </div>
-
-  <div class="grid gap-4 md:grid-cols-2">
-    <div class="rounded-xl bg-panel p-4 shadow-card">
-      <p class="text-xs uppercase tracking-wide text-muted">Guest ID</p>
-      <p class="mt-1 text-sm font-semibold">{{ reservation.guestId }}</p>
-      <p class="mt-3 text-xs uppercase tracking-wide text-muted">Unit ID</p>
-      <p class="mt-1 text-sm font-semibold">{{ reservation.unitId || '-' }}</p>
+      <a routerLink="/reservations" class="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{{ 'common.back' | translate }}</a>
+      <h2 class="mt-2 text-2xl font-bold text-ink">{{ 'reservations.title' | translate }} {{ reservation.code }}</h2>
+      <p class="mt-1 text-sm text-muted">{{ reservation.guestName || reservation.guestId }}</p>
     </div>
 
-    <div class="rounded-xl bg-panel p-4 shadow-card">
-      <p class="text-xs uppercase tracking-wide text-muted">Dates</p>
-      <p class="mt-1 text-sm font-semibold">{{ reservation.checkInDate }} -> {{ reservation.checkOutDate }}</p>
-      <p class="mt-3 text-xs uppercase tracking-wide text-muted">Status</p>
-      <p class="mt-1 text-sm font-semibold">{{ statusLabel(reservation.status) }}</p>
-      <p class="mt-3 text-xs uppercase tracking-wide text-muted">Estimated total</p>
-      <p class="mt-1 text-sm font-semibold">{{ reservation.totalEstimated | number : '1.2-2' }}</p>
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        *ngIf="reservation.status === 3"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink transition hover:border-primary/40 hover:text-primary"
+        (click)="openConsumptionModal()"
+      >
+        <app-icon name="shopping-bag" [size]="16"></app-icon>
+        {{ 'reservations.addConsumption' | translate }}
+      </button>
+
+      <button
+        *ngIf="reservation.status === 2"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:brightness-105"
+        (click)="openCheckInModal()"
+      >
+        <app-icon name="arrow-right-circle" [size]="16"></app-icon>
+        {{ 'reservations.checkin' | translate }}
+      </button>
     </div>
   </div>
+
+  <div class="grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
+    <section class="rounded-2xl border border-border bg-panel p-5 shadow-card">
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">{{ 'reservations.guest' | translate }}</p>
+          <p class="mt-2 text-sm font-semibold text-ink">{{ reservation.guestName || reservation.guestId }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">{{ 'reservations.unit' | translate }}</p>
+          <p class="mt-2 text-sm font-semibold text-ink">{{ reservation.unitName || reservation.unitId || '-' }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">{{ 'reservations.dates' | translate }}</p>
+          <p class="mt-2 text-sm font-semibold text-ink">{{ reservation.checkInDate }} → {{ reservation.checkOutDate }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">{{ 'reservations.status' | translate }}</p>
+          <span class="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{{ statusLabel(reservation.status) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-border bg-panel p-5 shadow-card">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">{{ 'reservations.estimatedTotal' | translate }}</p>
+      <p class="mt-3 text-3xl font-bold text-ink">{{ reservation.totalEstimated | number : '1.2-2' }}</p>
+      <p class="mt-2 text-sm text-muted">{{ 'reservations.estimatedTotalHint' | translate }}</p>
+    </section>
+  </div>
+
+  <section class="rounded-2xl border border-border bg-panel p-5 shadow-card">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <h3 class="text-lg font-semibold text-ink">{{ 'reservations.consumptions' | translate }}</h3>
+        <app-tooltip [text]="'helpers.consumptions' | translate"></app-tooltip>
+      </div>
+      <div class="text-right">
+        <p class="text-xs uppercase tracking-[0.2em] text-muted">{{ 'common.total' | translate }}</p>
+        <p class="text-lg font-bold text-primary">{{ consumptionTotal | number : '1.2-2' }}</p>
+      </div>
+    </div>
+
+    <div class="mt-4 space-y-3" *ngIf="consumptions.length; else emptyConsumptionTpl">
+      <article class="rounded-xl border border-border bg-surface/70 p-4" *ngFor="let consumption of consumptions">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="text-sm font-semibold text-ink">{{ consumption.description }}</p>
+              <span class="rounded-full bg-secondary/15 px-2.5 py-1 text-[11px] font-semibold text-secondary">
+                {{ sourceLabel(consumption.source) }}
+              </span>
+            </div>
+            <p class="mt-1 text-xs text-muted">{{ consumption.createdAt | date : 'medium' }}</p>
+          </div>
+          <p class="text-base font-bold text-ink">{{ consumption.total | number : '1.2-2' }}</p>
+        </div>
+
+        <div class="mt-3 overflow-hidden rounded-xl border border-border" *ngIf="consumption.items.length">
+          <div class="grid grid-cols-[1fr,90px,110px] gap-2 bg-panel px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+            <span>{{ 'consumptions.product' | translate }}</span>
+            <span class="text-right">{{ 'consumptions.qty' | translate }}</span>
+            <span class="text-right">{{ 'common.total' | translate }}</span>
+          </div>
+
+          <div class="grid grid-cols-[1fr,90px,110px] gap-2 border-t border-border px-3 py-2 text-sm text-ink" *ngFor="let item of consumption.items">
+            <span>{{ item.productName || ('consumptions.genericItem' | translate) }}</span>
+            <span class="text-right">{{ item.qty | number : '1.0-3' }}</span>
+            <span class="text-right font-semibold">{{ item.total | number : '1.2-2' }}</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
 </div>
 
 <ng-template #loadingTpl>
-  <div class="rounded-xl bg-panel p-4 shadow-card">Loading reservation...</div>
+  <div class="rounded-2xl border border-border bg-panel p-5 shadow-card">{{ 'common.loading' | translate }}</div>
 </ng-template>
 
-<app-modal [open]="checkInModalOpen" title="Check-in reservation" (close)="checkInModalOpen = false">
+<ng-template #emptyConsumptionTpl>
+  <p class="mt-4 text-sm text-muted">{{ 'consumptions.empty' | translate }}</p>
+</ng-template>
+
+<app-modal [open]="checkInModalOpen" [title]="'reservations.checkinModalTitle' | translate" (close)="checkInModalOpen = false">
   <form class="grid gap-3 md:grid-cols-2" [formGroup]="checkInForm" (ngSubmit)="executeCheckIn()">
-    <app-form-field label="Check-in at (optional)">
-      <input type="datetime-local" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="checkInAt" />
+    <app-form-field [label]="'reservations.checkInAt' | translate" [hint]="'reservations.checkInAtHint' | translate">
+      <input type="datetime-local" class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="checkInAt" />
     </app-form-field>
 
-    <app-form-field label="Room unit price (optional)">
-      <input type="number" step="0.01" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="roomUnitPrice" />
+    <app-form-field [label]="'reservations.roomUnitPrice' | translate" [hint]="'reservations.roomUnitPriceHint' | translate">
+      <input type="number" step="0.01" class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="roomUnitPrice" />
     </app-form-field>
 
-    <app-form-field label="Nights (optional)">
-      <input type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="roomNights" />
+    <app-form-field [label]="'reservations.roomNights' | translate">
+      <input type="number" class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="roomNights" />
     </app-form-field>
 
     <div class="md:col-span-2">
-      <app-form-field label="Description">
-        <input type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" formControlName="roomDescription" />
+      <app-form-field [label]="'reservations.roomDescription' | translate">
+        <input type="text" class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="roomDescription" />
       </app-form-field>
     </div>
 
     <div class="md:col-span-2 flex justify-end gap-2 pt-2">
-      <button type="button" class="rounded-md border border-slate-300 px-4 py-2 text-sm" (click)="checkInModalOpen = false">Cancel</button>
-      <button type="submit" class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white" [disabled]="saving">
-        {{ saving ? 'Processing...' : 'Confirm check-in' }}
+      <button type="button" class="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-ink" (click)="checkInModalOpen = false">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white" [disabled]="saving">
+        <app-icon name="check" [size]="16"></app-icon>
+        {{ saving ? ('common.loading' | translate) : ('reservations.confirmCheckin' | translate) }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [open]="consumptionModalOpen" [title]="'reservations.addConsumption' | translate" (close)="consumptionModalOpen = false">
+  <form class="space-y-4" [formGroup]="consumptionForm" (ngSubmit)="submitConsumption()">
+    <div class="grid gap-3 md:grid-cols-2">
+      <app-form-field [label]="'consumptions.source' | translate">
+        <select class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="source">
+          <option [value]="2">{{ 'chargeSource.minibar' | translate }}</option>
+          <option [value]="3">{{ 'chargeSource.restaurant' | translate }}</option>
+          <option [value]="4">{{ 'chargeSource.extra' | translate }}</option>
+        </select>
+      </app-form-field>
+
+      <app-form-field
+        [label]="'consumptions.location' | translate"
+        [hint]="'helpers.location' | translate"
+        [tooltip]="'helpers.trackStock' | translate"
+      >
+        <select class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="locationId">
+          <option value="">{{ 'consumptions.noLocation' | translate }}</option>
+          <option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</option>
+        </select>
+      </app-form-field>
+    </div>
+
+    <app-form-field [label]="'consumptions.description' | translate" [hint]="'consumptions.descriptionHint' | translate">
+      <input class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="description" [placeholder]="'consumptions.descriptionPlaceholder' | translate" />
+    </app-form-field>
+
+    <label class="flex items-center gap-2 text-sm text-ink">
+      <input type="checkbox" formControlName="allowOverridePrice" />
+      {{ 'consumptions.allowOverridePrice' | translate }}
+    </label>
+
+    <div formArrayName="items" class="space-y-3">
+      <div *ngFor="let item of consumptionItems.controls; let i = index" [formGroupName]="i" class="rounded-xl border border-border bg-surface/70 p-3">
+        <div class="grid gap-3 md:grid-cols-3">
+          <app-form-field [label]="'consumptions.product' | translate">
+            <select class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="productId">
+              <option value="">{{ 'consumptions.noProduct' | translate }}</option>
+              <option *ngFor="let product of products" [value]="product.id">{{ product.name }}</option>
+            </select>
+          </app-form-field>
+
+          <app-form-field [label]="'consumptions.qty' | translate">
+            <input type="number" step="0.001" class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="qty" />
+          </app-form-field>
+
+          <app-form-field [label]="'consumptions.unitPrice' | translate" [hint]="'consumptions.unitPriceHint' | translate">
+            <input type="number" step="0.01" class="w-full rounded-xl border border-border bg-panel px-3 py-2 text-ink" formControlName="unitPrice" />
+          </app-form-field>
+        </div>
+
+        <div class="mt-2 text-right">
+          <button type="button" class="rounded-xl border border-danger/30 px-3 py-1.5 text-xs font-semibold text-danger" (click)="removeConsumptionItem(i)">
+            {{ 'common.delete' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-ink" (click)="addConsumptionItem()">
+      <app-icon name="plus" [size]="16"></app-icon>
+      {{ 'consumptions.addItem' | translate }}
+    </button>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <button type="button" class="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-ink" (click)="consumptionModalOpen = false">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white" [disabled]="saving">
+        <app-icon name="check" [size]="16"></app-icon>
+        {{ saving ? ('common.loading' | translate) : ('common.save' | translate) }}
       </button>
     </div>
   </form>

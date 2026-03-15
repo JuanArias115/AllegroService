@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClientService } from '../../core/api/http-client.service';
 import { ListQuery, PagedResponse } from '../../core/models/api.model';
-import { CheckInResponse, Reservation } from '../../core/models/domain.model';
+import { CheckInResponse, Consumption, Reservation } from '../../core/models/domain.model';
 
 export type ReservationPayload = Pick<
   Reservation,
@@ -35,5 +35,22 @@ export class ReservationsApi {
 
   checkIn(id: string, payload: { checkInAt?: string; roomUnitPrice?: number; roomNights?: number; roomDescription?: string }): Observable<CheckInResponse> {
     return this.http.post<CheckInResponse>(`/v1/reservations/${id}/check-in`, payload);
+  }
+
+  getConsumptions(id: string): Observable<Consumption[]> {
+    return this.http.get<Consumption[]>(`/v1/reservations/${id}/consumptions`);
+  }
+
+  addConsumption(
+    id: string,
+    payload: {
+      source: number;
+      description: string;
+      locationId?: string;
+      allowOverridePrice: boolean;
+      items: { productId?: string; qty: number; unitPrice?: number }[];
+    }
+  ): Observable<Consumption> {
+    return this.http.post<Consumption>(`/v1/reservations/${id}/consumptions`, payload);
   }
 }

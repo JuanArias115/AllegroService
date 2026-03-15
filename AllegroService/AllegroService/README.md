@@ -93,6 +93,11 @@ Lectura:
 Flujos de negocio:
 
 - `POST /api/v1/reservations/{id}/check-in`
+- `GET /api/v1/reservations/{id}/consumptions`
+- `POST /api/v1/reservations/{id}/consumptions`
+- `GET /api/v1/stays/{stayId}/consumptions`
+- `POST /api/v1/stays/{stayId}/consumptions`
+- `GET /api/v1/stays/{stayId}/checkout-summary?lang=es|en`
 - `POST /api/v1/folios/{folioId}/charges`
 - `POST /api/v1/folios/{folioId}/payments`
 - `POST /api/v1/stays/{stayId}/check-out`
@@ -212,7 +217,7 @@ Authorization: Bearer <firebase-jwt>
 
 ### 3) Registrar consumo
 
-`POST /api/v1/folios/{folioId}/charges`
+`POST /api/v1/stays/{stayId}/consumptions`
 
 ```json
 {
@@ -228,6 +233,10 @@ Authorization: Bearer <firebase-jwt>
   ]
 }
 ```
+
+Tambien disponible desde reserva ya chequeada:
+
+`POST /api/v1/reservations/{reservationId}/consumptions`
 
 ### 4) Registrar pago
 
@@ -250,5 +259,31 @@ Authorization: Bearer <firebase-jwt>
 {
   "force": false,
   "checkOutAt": "2026-03-12T11:00:00Z"
+}
+```
+
+### 6) Obtener resumen para WhatsApp
+
+`GET /api/v1/stays/{stayId}/checkout-summary?lang=es`
+
+Respuesta esperada:
+
+```json
+{
+  "phone": "+573001234567",
+  "message": "Resumen de tu estadia...",
+  "totals": {
+    "chargesTotal": 350000,
+    "paymentsTotal": 350000,
+    "balance": 0
+  },
+  "items": [
+    {
+      "label": "Minibar cabin 3",
+      "qty": 2,
+      "unitPrice": 10000,
+      "total": 20000
+    }
+  ]
 }
 ```

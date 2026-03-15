@@ -1,30 +1,47 @@
 <div class="flex min-h-screen bg-canvas text-ink">
-  <aside class="hidden w-64 border-r border-slate-200 bg-panel p-4 lg:block">
-    <h1 class="mb-6 text-xl font-bold text-accent">Glamping Admin</h1>
+  <aside class="hidden w-72 border-r border-border bg-panel/90 p-5 backdrop-blur lg:block">
+    <h1 class="mb-6 text-xl font-bold text-primary">{{ 'app.name' | translate }}</h1>
     <nav class="space-y-1">
       <a
         *ngFor="let item of navItems"
         [class.hidden]="!canShow(item)"
         [routerLink]="item.path"
-        routerLinkActive="bg-slate-900 text-white"
+        routerLinkActive="bg-primary text-white shadow-card"
         [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-        class="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/90 hover:bg-surface"
       >
-        {{ item.label }}
+        <app-icon [name]="item.icon" [size]="18"></app-icon>
+        <span>{{ item.label | translate }}</span>
       </a>
     </nav>
   </aside>
 
   <main class="flex-1">
-    <header class="flex items-center justify-between border-b border-slate-200 bg-panel px-4 py-3">
+    <header class="flex items-center justify-between border-b border-border bg-panel/90 px-4 py-3 backdrop-blur">
       <div>
         <p class="text-xs uppercase tracking-wider text-muted">Tenant</p>
         <p class="text-sm font-semibold">{{ auth.glampingId ?? 'N/A' }}</p>
         <p class="text-xs text-muted">Rol: {{ auth.currentRoleLabel }} | Estado: {{ auth.currentStatusLabel }}</p>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink"
+          (click)="i18n.use(i18n.current === 'es' ? 'en' : 'es')"
+        >
+          <app-icon name="language" [size]="16"></app-icon>
+          <span>{{ i18n.current | uppercase }}</span>
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm text-ink"
+          (click)="theme.toggle()"
+        >
+          <app-icon [name]="theme.current === 'dark' ? 'sun' : 'moon'" [size]="16"></app-icon>
+          <span>{{ ('common.' + (theme.current === 'dark' ? 'light' : 'dark')) | translate }}</span>
+        </button>
         <span class="text-sm text-slate-600">{{ auth.currentEmail }}</span>
-        <button class="rounded-md border border-slate-300 px-3 py-1.5 text-sm" (click)="logout()">Logout</button>
+        <button class="rounded-xl border border-border px-3 py-2 text-sm text-ink" (click)="logout()">{{ 'common.logout' | translate }}</button>
       </div>
     </header>
 
