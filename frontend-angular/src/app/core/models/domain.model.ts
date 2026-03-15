@@ -65,6 +65,7 @@ export interface Stay {
 export interface ChargeItem {
   id: string;
   productId?: string | null;
+  productName?: string | null;
   qty: number;
   unitPrice: number;
   total: number;
@@ -114,4 +115,52 @@ export interface CheckOutResponse {
   folioId: string;
   balance: number;
   checkOutAt: string;
+}
+
+export interface ConsumptionItem {
+  id: string;
+  productId?: string | null;
+  productName?: string | null;
+  qty: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface Consumption {
+  id: string;
+  stayId: string;
+  reservationId?: string | null;
+  folioId: string;
+  source: number;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+  createdAt: string;
+  items: ConsumptionItem[];
+}
+
+export interface CheckoutSummaryItem {
+  label: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+  source?: string | null;
+}
+
+export interface CheckoutSummary {
+  stayId: string;
+  reservationId?: string | null;
+  reservationCode?: string | null;
+  guestName?: string | null;
+  phone?: string | null;
+  checkInAt: string;
+  checkOutAt?: string | null;
+  totals: {
+    chargesTotal: number;
+    paymentsTotal: number;
+    balance: number;
+  };
+  items: CheckoutSummaryItem[];
+  message: string;
 }

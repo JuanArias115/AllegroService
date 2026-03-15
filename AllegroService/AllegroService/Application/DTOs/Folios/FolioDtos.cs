@@ -27,6 +27,7 @@ public sealed record ChargeDto(
 public sealed record ChargeItemDto(
     Guid Id,
     Guid? ProductId,
+    string? ProductName,
     decimal Qty,
     decimal UnitPrice,
     decimal Total);

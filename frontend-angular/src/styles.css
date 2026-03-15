@@ -3,15 +3,47 @@
 @tailwind utilities;
 
 :root {
-  color: #18222d;
-  background-color: #f4f6f8;
+  --color-primary: 46 94 72;
+  --color-secondary: 116 141 112;
+  --color-accent: 64 124 112;
+  --color-success: 39 105 76;
+  --color-warning: 180 125 38;
+  --color-danger: 167 56 32;
+  --color-canvas: 245 241 232;
+  --color-surface: 238 232 217;
+  --color-panel: 255 252 246;
+  --color-ink: 33 43 38;
+  --color-muted: 102 114 106;
+  --color-border: 214 205 187;
+  color: rgb(var(--color-ink));
+  background-color: rgb(var(--color-canvas));
   font-family: 'Manrope', 'Segoe UI', sans-serif;
+}
+
+:root.dark {
+  --color-primary: 107 170 143;
+  --color-secondary: 134 156 142;
+  --color-accent: 107 169 170;
+  --color-success: 87 172 123;
+  --color-warning: 214 174 97;
+  --color-danger: 230 120 92;
+  --color-canvas: 19 28 26;
+  --color-surface: 27 39 36;
+  --color-panel: 31 46 42;
+  --color-ink: 235 240 233;
+  --color-muted: 161 173 165;
+  --color-border: 63 82 77;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(160deg, #f8fafc 0%, #f4f6f8 50%, #eef2f7 100%);
+  background:
+    radial-gradient(circle at top left, rgba(var(--color-secondary), 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(var(--color-accent), 0.14), transparent 24%),
+    linear-gradient(160deg, rgb(var(--color-canvas)) 0%, rgb(var(--color-surface)) 52%, rgb(var(--color-canvas)) 100%);
+  color: rgb(var(--color-ink));
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 * {
@@ -23,4 +55,20 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+::selection {
+  background: rgba(var(--color-accent), 0.22);
 }
